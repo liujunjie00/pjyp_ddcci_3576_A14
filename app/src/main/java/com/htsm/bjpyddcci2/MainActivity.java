@@ -33,4 +33,23 @@ public class MainActivity extends AppCompatActivity {
      * which is packaged with this application.
      */
     public native String stringFromJNI();
+
+
+    // 获取显示器的亮度
+    public static native int getDPBrightness();
+
+    // 设置显示器的亮度
+    public static native int setDPBrightness(int value);
+
+    // 获取显示器的声音大小
+    public static native int getDPSound();
+
+    // 设置显示器的 大小
+    public static native int setDPSound(int value);
+
+    // 获取当前的充电状态
+    public static native  int getChargingStatus();
+
+    // 获取当前电量
+    public static native int getCurrentBatteryLevel();
 }
