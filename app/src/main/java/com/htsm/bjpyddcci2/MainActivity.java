@@ -1,12 +1,15 @@
 package com.htsm.bjpyddcci2;
 
+import static com.htsm.bjpyddcci2.SystemUtil.execShellCmdForRoot;
+
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
+
+import java.io.File;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -14,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
     private SeekBar br,sound,batt;
     private TextView charing;
+    private final static String i2c_addr = "/dev/i2c-10";
 
     // Used to load the 'bjpyddcci2' library on application startup.
     static {
@@ -25,6 +29,20 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        setI2c777();
+        initView();
+    }
+
+    /**
+     * debug 版本 配置 */
+    private void setI2c777() {
+        String st = execShellCmdForRoot("chown system:system "+i2c_addr);
+        Log.d(TAG, "setI2c777: st"+st);
+
+
+    }
+
+    private void initView() {
         br = findViewById(R.id.screen_br);
         sound = findViewById(R.id.screen_sound);
         batt = findViewById(R.id.screen_batt_status);
@@ -75,9 +93,6 @@ public class MainActivity extends AppCompatActivity {
         sound.setProgress(sound_i);
         int cur = getChargingStatus();
         charing.setText(cur >0?"正在充电":"正在待机");
-
-
-
     }
 
 
