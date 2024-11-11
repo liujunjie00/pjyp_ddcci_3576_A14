@@ -1,16 +1,11 @@
 package com.htsm.bjpyddcci2;
 
-import static com.htsm.bjpyddcci2.SystemUtil.execShellCmdForRoot;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.TextView;
-
-import java.io.File;
-
 
 public class MainActivity extends AppCompatActivity {
 
@@ -29,17 +24,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        setI2c777();
         initView();
-    }
-
-    /**
-     * debug 版本 配置 */
-    private void setI2c777() {
-        String st = execShellCmdForRoot("chown system:system "+i2c_addr);
-        Log.d(TAG, "setI2c777: st"+st);
-
-
     }
 
     private void initView() {
