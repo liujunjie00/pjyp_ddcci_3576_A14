@@ -437,7 +437,7 @@ int main(int argc, char **argv)
 	/* filedescriptor and name of device */
 	int fd; 
 	char *fn;
-	unsigned int addr = DEFAULT_DDCCI_ADDR;
+	unsigned int addr = DEFAULT_DDCCI_ADDR; //0x37
 
 	/* what to do */
 	int dump = 0;
@@ -448,7 +448,8 @@ int main(int argc, char **argv)
 	int save = 0;
 	int force = 0;
 	int sam = 0;
-	
+	//./dcccibin -a 0x37 -r 0x10 /dev/i2c-10
+    //               addr    ctrl
 	fprintf(stdout, "ddcci-tool version 0.03\n");
     
 	while ((i=getopt(argc,argv,"a:hdr:w:cesfvS")) >= 0)
