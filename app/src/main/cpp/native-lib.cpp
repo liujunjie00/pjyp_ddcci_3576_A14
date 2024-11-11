@@ -381,11 +381,16 @@ int ddcci_dumpctrl(int fd, unsigned int addr,
             fprintf(stderr, "Raw: ");
             dumphex(stderr, buf, sizeof(buf));
         }
+        if (current != -1){
+            return current;
+        }
     }
 
     return len;
 }
 
+static  char *fn = "dev/i2c-10";
+static  int  addr_ctr;
 extern "C"
 JNIEXPORT jstring JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_stringFromJNI(
@@ -400,30 +405,111 @@ extern "C"
 JNIEXPORT jint JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_getDPBrightness(JNIEnv *env, jclass clazz) {
     // TODO: implement getDPBrightness()
+    int fd;
+    jint re;
+    addr_ctr = 0x10;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return -1;
+    }
+    re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+
+    return re;
+
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_setDPBrightness(JNIEnv *env, jclass clazz, jint value) {
-    // TODO: implement setDPBrightness()
+    // TODO: implement setDPBrightness()  ddcci_writectrl(fd, addr, ctrl, value);
+    int fd;
+    jint re;
+    addr_ctr = 0x10;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return -1;
+    }
+    re = ddcci_writectrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,value);
+
+    return re;
+
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_getDPSound(JNIEnv *env, jclass clazz) {
     // TODO: implement getDPSound()
+    int fd;
+    jint re;
+    addr_ctr = 0x62;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return -1;
+    }
+    re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+
+    return re;
+
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_setDPSound(JNIEnv *env, jclass clazz, jint value) {
     // TODO: implement setDPSound()
+    int fd;
+    jint re;
+    addr_ctr = 0x62;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return -1;
+    }
+    re = ddcci_writectrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,value);
+
+    return re;
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_getChargingStatus(JNIEnv *env, jclass clazz) {
+    int fd;
+    jint re;
+    addr_ctr = 0x65;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return -1;
+    }
+    re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+
+    return re;
     // TODO: implement getChargingStatus()
 }
 extern "C"
 JNIEXPORT jint JNICALL
 Java_com_htsm_bjpyddcci2_MainActivity_getCurrentBatteryLevel(JNIEnv *env, jclass clazz) {
+    int fd;
+    jint re;
+    addr_ctr = 0x61;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return -1;
+    }
+    re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+
+    return re;
     // TODO: implement getCurrentBatteryLevel()
 }
 

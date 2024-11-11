@@ -3,30 +3,83 @@ package com.htsm.bjpyddcci2;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
+import android.util.Log;
+import android.view.View;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.htsm.bjpyddcci2.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
+
+    private static final String TAG = "MainActivity";
+    private SeekBar br,sound,batt;
+    private TextView charing;
 
     // Used to load the 'bjpyddcci2' library on application startup.
     static {
         System.loadLibrary("bjpyddcci2");
     }
 
-    private ActivityMainBinding binding;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        br = findViewById(R.id.screen_br);
+        sound = findViewById(R.id.screen_sound);
+        batt = findViewById(R.id.screen_batt_status);
+        charing = findViewById(R.id.screen_batt_charing);
 
-        binding = ActivityMainBinding.inflate(getLayoutInflater());
-        setContentView(binding.getRoot());
+        br.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.d(TAG, "onProgressChanged: 亮度调节:"+progress);
+                setDPBrightness(progress);
 
-        // Example of a call to a native method
-        TextView tv = binding.sampleText;
-        tv.setText(stringFromJNI());
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+
+        sound.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+            @Override
+            public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                Log.d(TAG, "onProgressChanged: 声音调节:"+progress);
+                setDPSound(progress);
+
+            }
+
+            @Override
+            public void onStartTrackingTouch(SeekBar seekBar) {
+
+            }
+
+            @Override
+            public void onStopTrackingTouch(SeekBar seekBar) {
+
+            }
+        });
+        int battLevel = getCurrentBatteryLevel();
+        batt.setProgress(battLevel);
+        int br_i = getDPBrightness();
+        br.setProgress(br_i);
+        int sound_i = getDPSound();
+        sound.setProgress(sound_i);
+        int cur = getChargingStatus();
+        charing.setText(cur >0?"正在充电":"正在待机");
+
+
+
     }
+
 
     /**
      * A native method that is implemented by the 'bjpyddcci2' native library,
@@ -36,7 +89,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     // 获取显示器的亮度
-    public static native int getDPBrightness();
+    public static native int getDPBrightness(); //./dcccibin -a 0x37 -r 0x10 /dev/i2c-10
 
     // 设置显示器的亮度
     public static native int setDPBrightness(int value);
