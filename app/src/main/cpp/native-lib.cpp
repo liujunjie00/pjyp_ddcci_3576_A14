@@ -416,6 +416,8 @@ Java_com_htsm_bjpyddcci2_MainActivity_getDPBrightness(JNIEnv *env, jclass clazz)
         return -1;
     }
     re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+    close(fd);
+
 
     return re;
 
@@ -435,6 +437,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_setDPBrightness(JNIEnv *env, jclass clazz,
         return -1;
     }
     re = ddcci_writectrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,value);
+    close(fd);
 
     return re;
 
@@ -454,6 +457,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getDPSound(JNIEnv *env, jclass clazz) {
         return -1;
     }
     re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+    close(fd);
 
     return re;
 
@@ -473,6 +477,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_setDPSound(JNIEnv *env, jclass clazz, jint
         return -1;
     }
     re = ddcci_writectrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,value);
+    close(fd);
 
     return re;
 }
@@ -490,6 +495,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getChargingStatus(JNIEnv *env, jclass claz
         return -1;
     }
     re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+    close(fd);
 
     return re;
     // TODO: implement getChargingStatus()
@@ -508,6 +514,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getCurrentBatteryLevel(JNIEnv *env, jclass
         return -1;
     }
     re = ddcci_dumpctrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,1);
+    close(fd);
 
     return re;
     // TODO: implement getCurrentBatteryLevel()

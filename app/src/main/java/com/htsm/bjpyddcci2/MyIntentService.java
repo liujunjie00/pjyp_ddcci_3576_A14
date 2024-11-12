@@ -3,21 +3,19 @@ package com.htsm.bjpyddcci2;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.hardware.display.DisplayManager;
 import android.os.BatteryManager;
+import android.os.Handler;
 import android.os.IBinder;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.Display;
 
 import androidx.annotation.Nullable;
 public class MyIntentService extends Service {
-    public static final String screen_brightness = "screen_brightness";
     private static final String TAG = "MyIntentService";
     private int brightness =0; // 保存当前机器的亮度值
-    private boolean DpModel = false;
+    private boolean DPMode = false; // 标志亮度值是否保存
 
     @Nullable
     @Override
@@ -28,9 +26,42 @@ public class MyIntentService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        initDpconfig();
         initStatus();
         initManger();
     }
+
+    /**
+     * 初始化dp 标识位
+     * */
+    private void initDpconfig() {
+    }
+
+
+    private Handler handler = new Handler();
+    Runnable runnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isDPConnect() && !DPMode){
+                try {
+                    brightness = Settings.System.getInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS);
+                } catch (Settings.SettingNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+                int dpBrightness = MainActivity.getDPBrightness(); //100
+                int st = Math.round((float) dpBrightness /100 * 255);
+                Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,st);
+                Log.d(TAG, "G1ConnectStatus: 切换到dp 模式 配置显示器亮度："+dpBrightness+" , 保存平板状态："+brightness);
+                DPMode = true;
+            }else if (!isDPConnect() && DPMode){
+                Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,brightness);
+                Log.d(TAG, "G1ConnectStatus: 切换到平板 模式 配置显示器亮度："+brightness);
+                DPMode = false;
+
+            }
+
+        }
+    };
 
     private final DisplayManager.DisplayListener displayListener = new DisplayManager.DisplayListener() {
         @Override
@@ -47,34 +78,12 @@ public class MyIntentService extends Service {
 
         @Override
         public void onDisplayChanged(int displayId) {
-
-            Display display = displayManager.getDisplay(displayId);
-            int height = display.getHeight();
-            int width = display.getWidth();
-            Log.d(TAG, "onDisplayChanged: "+displayId+ "   , height:"+height+" ,width:"+width);
-            boolean isG1 =  width == 720 || height == 1440 || width == 1440 || height == 720;
-            boolean isConnect = !isG1;
-            if (isConnect ){
-                try {
-                    brightness =   Settings.System.getInt(getContentResolver(),screen_brightness);
-                } catch (Settings.SettingNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-                int dpBrightness = MainActivity.getDPBrightness();
-                Settings.System.putInt(getContentResolver(),screen_brightness,dpBrightness);
-                Log.d(TAG, "G1ConnectStatus: 切换到dp 模式 配置显示器亮度："+dpBrightness+" , 保存平板状态："+brightness);
-            }else {
-                    Settings.System.putInt(getContentResolver(),screen_brightness,brightness);
-                    Log.d(TAG, "G1ConnectStatus: 切换到平板 模式 配置显示器亮度："+brightness);
-
-            }
-
-
+            handler.removeCallbacks(runnable);
+            handler.postDelayed(runnable,2*1000);
         }
     };
     DisplayManager displayManager;
     private void initManger() {
-
         displayManager = getApplicationContext().getSystemService(DisplayManager.class);
         displayManager.registerDisplayListener(displayListener,null);
     }
@@ -86,17 +95,6 @@ public class MyIntentService extends Service {
     }
 
     private void initStatus() {
-        BatteryStatus batteryStatus = new BatteryStatus();
-        IntentFilter filter = new IntentFilter();
-        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
-        registerReceiver(batteryStatus, filter);
-        batteryStatus.setConnectInterface(new BatteryStatus.G1ConnectInterface() {
-            @Override
-            public void G1ConnectStatus(boolean isConnect) {
-
-
-            }
-        });
         BrightnessObserver brightnessObserver = new BrightnessObserver(getApplicationContext());
         getContentResolver().registerContentObserver(
                 Settings.System.getUriFor(Settings.System.SCREEN_BRIGHTNESS),
@@ -131,17 +129,13 @@ public class MyIntentService extends Service {
 
             handleBrightnessChange(brightness);
         }
-
         private void handleBrightnessChange(int brightness) {
             if (isDPConnect()){
-
                 int st = Math.round((float) brightness /255 * 100);
                 Log.d(TAG, "handleBrightnessChange: " +st);
                 MainActivity.setDPBrightness(st);
             }
-
         }
     }
-
 
 }
