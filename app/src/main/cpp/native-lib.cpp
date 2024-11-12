@@ -389,7 +389,7 @@ int ddcci_dumpctrl(int fd, unsigned int addr,
     return len;
 }
 
-static  char *fn = "dev/i2c-10";
+static  char *fn = "/dev/i2c-10";
 static  int  addr_ctr;
 extern "C"
 JNIEXPORT jstring JNICALL
@@ -483,7 +483,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getChargingStatus(JNIEnv *env, jclass claz
     jint re;
     addr_ctr = 0x65;
     // 打开节点
-    if ((fd = open(fn, O_RDWR)) < 0)
+    if ((fd = open(fn, O_RDWR)) < 0) // 需要关闭selinux
     {
         perror(fn);
         fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");

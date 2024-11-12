@@ -8,10 +8,14 @@ import android.database.ContentObserver;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.provider.Settings;
+import android.util.Log;
+
 import androidx.annotation.Nullable;
 public class MyIntentService extends Service {
     public static final String screen_brightness = "screen_brightness";
+    private static final String TAG = "MyIntentService";
     private int brightness =0; // 保存当前机器的亮度值
+    private boolean DpModel = false;
 
     @Nullable
     @Override
@@ -39,8 +43,7 @@ public class MyIntentService extends Service {
         batteryStatus.setConnectInterface(new BatteryStatus.G1ConnectInterface() {
             @Override
             public void G1ConnectStatus(boolean isConnect) {
-                if (isConnect){
-
+                if (isConnect && !DpModel){
                     try {
                         brightness =   Settings.System.getInt(getContentResolver(),screen_brightness);
                     } catch (Settings.SettingNotFoundException e) {
@@ -48,9 +51,14 @@ public class MyIntentService extends Service {
                     }
                     int dpBrightness = MainActivity.getDPBrightness();
                     Settings.System.putInt(getContentResolver(),screen_brightness,dpBrightness);
+                    Log.d(TAG, "G1ConnectStatus: 切换到dp 模式 配置显示器亮度："+dpBrightness+" , 保存平板状态："+brightness);
+                    DpModel = true;
                 }else {
-                    Settings.System.putInt(getContentResolver(),screen_brightness,brightness);
-
+                    if (DpModel){
+                        Settings.System.putInt(getContentResolver(),screen_brightness,brightness);
+                        Log.d(TAG, "G1ConnectStatus: 切换到平板 模式 配置显示器亮度："+brightness);
+                        DpModel = false;
+                    }
                 }
 
             }
@@ -92,7 +100,10 @@ public class MyIntentService extends Service {
 
         private void handleBrightnessChange(int brightness) {
             if (isDPConnect()){
-                MainActivity.setDPBrightness(brightness);
+
+                int st = Math.round((float) brightness /255 * 100);
+                Log.d(TAG, "handleBrightnessChange: " +st);
+                MainActivity.setDPBrightness(st);
             }
 
         }
