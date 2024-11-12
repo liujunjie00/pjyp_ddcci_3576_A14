@@ -1,6 +1,9 @@
 package com.htsm.bjpyddcci2;
 
+import android.content.Context;
+import android.graphics.Point;
 import android.util.Log;
+import android.view.WindowManager;
 
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -58,6 +61,8 @@ public class SystemUtil {
 		Log.d(TAG, "execShellCmd result: "+result);
 		return result;
 	}
+
+
 
 
 

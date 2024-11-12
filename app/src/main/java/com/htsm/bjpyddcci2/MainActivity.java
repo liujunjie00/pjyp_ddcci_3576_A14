@@ -2,6 +2,9 @@ package com.htsm.bjpyddcci2;
 
 
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.SeekBar;
@@ -25,6 +28,19 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         initView();
+        initStatus();
+    }
+
+    private void initStatus() {
+        /*BatteryStatus batteryStatus = new BatteryStatus();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BATTERY_CHANGED);
+        registerReceiver(batteryStatus, filter);*/
+
+        Intent intent = new Intent();
+        intent.setClass(this,MyIntentService.class);
+        startService(intent);
+
     }
 
     private void initView() {
