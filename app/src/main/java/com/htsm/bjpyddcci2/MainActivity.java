@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.SeekBar;
@@ -16,6 +17,7 @@ public class MainActivity extends AppCompatActivity {
     private SeekBar br,sound,batt;
     private TextView charing;
     private final static String i2c_addr = "/dev/i2c-10";
+    private MediaPlayer mediaPlayer;
 
     // Used to load the 'bjpyddcci2' library on application startup.
     static {
@@ -84,6 +86,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
 
+
             }
         });
         int battLevel = getCurrentBatteryLevel();
@@ -95,6 +98,7 @@ public class MainActivity extends AppCompatActivity {
         int cur = getChargingStatus();
         charing.setText(cur >0?"正在充电":"正在待机");
     }
+
 
 
     /**

@@ -16,15 +16,15 @@ public class BatteryStatus extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         // Retrieves battery status from the Intent
         int status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
-        Log.d(TAG, "onReceive  status: "+status);
+        //Log.d(TAG, "onReceive  status: "+status);
         if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
             if (!getWindowIsG1(context) && connectInterface != null){
-                Log.d(TAG, "onReceive: ====BATTERY_STATUS_CHARGING== ");
+               // Log.d(TAG, "onReceive: ====BATTERY_STATUS_CHARGING== ");
                 connectInterface.G1ConnectStatus(true);
             }
         } else if (status == BatteryManager.BATTERY_STATUS_DISCHARGING) {
             if (getWindowIsG1(context) && connectInterface != null){
-                Log.d(TAG, "onReceive: ====BATTERY_STATUS_DISCHARGING== ");
+               // Log.d(TAG, "onReceive: ====BATTERY_STATUS_DISCHARGING== ");
                 connectInterface.G1ConnectStatus(false);
             }
         }
@@ -44,7 +44,7 @@ public class BatteryStatus extends BroadcastReceiver {
         wm.getDefaultDisplay().getSize(size);
         int width = size.x;
         int height = size.y;
-        android.util.Log.d("liujunjie", "============getWindowSzie: "+size);
+       // android.util.Log.d("liujunjie", "============getWindowSzie: "+size);
         return width == 720 || height == 1440 || width == 1440 || height == 720;
 
     }
