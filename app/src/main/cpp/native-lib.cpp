@@ -520,3 +520,20 @@ Java_com_htsm_bjpyddcci2_MainActivity_getCurrentBatteryLevel(JNIEnv *env, jclass
     // TODO: implement getCurrentBatteryLevel()
 }
 
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_com_htsm_bjpyddcci2_MainActivity_setBacklightSwitch(JNIEnv *env, jclass clazz,jint value) {
+    // TODO: implement setBacklightSwitch()
+    int fd;
+    addr_ctr = 0x67;
+    // 打开节点
+    if ((fd = open(fn, O_RDWR)) < 0)
+    {
+        perror(fn);
+        fprintf(stderr, "Be sure you've modprobed i2c-dev and correct i2c device.\n");
+        return ;
+    }
+    ddcci_writectrl(fd,DEFAULT_DDCCI_ADDR,addr_ctr,value);
+    close(fd);
+}

@@ -125,4 +125,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 获取当前电量
     public static native int getCurrentBatteryLevel();
+
+    //BACKLIGHT
+    public static native void setBacklightSwitch(int value);
 }
