@@ -18,6 +18,11 @@ public class MyIntentService extends Service {
     private static final String TAG = "MyIntentService";
     private int brightness =0; // 保存当前机器的亮度值
     private boolean DPMode = false; // 标志亮度值是否保存
+    private static final String G1_DP_BATTERY_STATUS = "g1dpbatterystatus";
+    private static final String G1_DP_BATTERY_LEVEL = "g1dpbatterylevel";
+    private static final int G1_DP_NOT_CONNECT = -1;
+    DisplayManager displayManager;
+    private final Handler handler = new Handler();
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -34,41 +39,45 @@ public class MyIntentService extends Service {
         }
     };
 
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
+    private final Runnable readBatteryStatsRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (isDPConnect()){
+                int batteryLevel = MainActivity.getCurrentBatteryLevel();
+                int BatteryStatus = MainActivity.getChargingStatus();  // 1是待机 2是充电
+                Log.d(TAG, "run: readBatteryStatsRunnable G1 写入 Settings  batteryLevel :" +batteryLevel +", BatteryStatus:"+BatteryStatus);
+                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,batteryLevel);
+                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_STATUS,BatteryStatus);
+            }else {
+                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_STATUS,G1_DP_NOT_CONNECT);
+                Log.d(TAG, "run: readBatteryStatsRunnable G1 没有连接 ");
+            }
 
-    @Override
-    public void onCreate() {
-        super.onCreate();
-        initDpconfig();
-        initStatus();
-        initManger();
-        initScreenListen();
-    }
+            handler.postDelayed(readBatteryStatsRunnable,3000); //循环
 
+        }
+    };
+    private final DisplayManager.DisplayListener displayListener = new DisplayManager.DisplayListener() {
+        @Override
+        public void onDisplayAdded(int displayId) {
+            Log.d(TAG, "onDisplayAdded: "+displayId);
 
-    /**
-     * 监听屏幕变化
-     * */
-    private void initScreenListen() {
-        IntentFilter intentFilter = new IntentFilter();
-        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-        registerReceiver(screenReceiver,intentFilter);
-    }
+        }
 
-    /**
-     * 初始化dp 标识位
-     * */
-    private void initDpconfig() {
-    }
+        @Override
+        public void onDisplayRemoved(int displayId) {
+            Log.d(TAG, "onDisplayRemoved: "+displayId);
 
+        }
 
-    private final Handler handler = new Handler();
-    Runnable runnable = new Runnable() {
+        @Override
+        public void onDisplayChanged(int displayId) {
+            handler.removeCallbacks(runnable);
+            handler.postDelayed(runnable,2*1000);
+        }
+    };
+
+    private final Runnable runnable = new Runnable() {
         @Override
         public void run() {
             if (isDPConnect() && !DPMode){
@@ -93,26 +102,40 @@ public class MyIntentService extends Service {
         }
     };
 
-    private final DisplayManager.DisplayListener displayListener = new DisplayManager.DisplayListener() {
-        @Override
-        public void onDisplayAdded(int displayId) {
-            Log.d(TAG, "onDisplayAdded: "+displayId);
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
 
-        }
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        initStatus();
+        initManger();
+        initScreenListen();
+        initBatteryStausListen();
+    }
 
-        @Override
-        public void onDisplayRemoved(int displayId) {
-            Log.d(TAG, "onDisplayRemoved: "+displayId);
+    private void initBatteryStausListen() {
+        handler.postDelayed(readBatteryStatsRunnable,1000);
+    }
 
-        }
 
-        @Override
-        public void onDisplayChanged(int displayId) {
-            handler.removeCallbacks(runnable);
-            handler.postDelayed(runnable,2*1000);
-        }
-    };
-    DisplayManager displayManager;
+    /**
+     * 监听屏幕变化
+     * */
+    private void initScreenListen() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(screenReceiver,intentFilter);
+    }
+
+
+
+
+
     private void initManger() {
         displayManager = getApplicationContext().getSystemService(DisplayManager.class);
         displayManager.registerDisplayListener(displayListener,null);
