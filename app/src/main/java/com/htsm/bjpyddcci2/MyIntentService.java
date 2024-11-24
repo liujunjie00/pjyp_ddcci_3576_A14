@@ -1,8 +1,10 @@
 package com.htsm.bjpyddcci2;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.database.ContentObserver;
 import android.hardware.display.DisplayManager;
 import android.os.BatteryManager;
@@ -16,6 +18,21 @@ public class MyIntentService extends Service {
     private static final String TAG = "MyIntentService";
     private int brightness =0; // 保存当前机器的亮度值
     private boolean DPMode = false; // 标志亮度值是否保存
+    private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (intent == null) return;
+            if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())){
+                MainActivity.setBacklightSwitch(0);
+                Log.d(TAG, "onReceive: 打开dp 显示器背光");
+
+            }else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())){
+                MainActivity.setBacklightSwitch(1);
+                Log.d(TAG, "onReceive: 关闭dp 显示器背光");
+            }
+
+        }
+    };
 
     @Nullable
     @Override
@@ -29,6 +46,18 @@ public class MyIntentService extends Service {
         initDpconfig();
         initStatus();
         initManger();
+        initScreenListen();
+    }
+
+
+    /**
+     * 监听屏幕变化
+     * */
+    private void initScreenListen() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        registerReceiver(screenReceiver,intentFilter);
     }
 
     /**
@@ -38,7 +67,7 @@ public class MyIntentService extends Service {
     }
 
 
-    private Handler handler = new Handler();
+    private final Handler handler = new Handler();
     Runnable runnable = new Runnable() {
         @Override
         public void run() {
@@ -53,6 +82,7 @@ public class MyIntentService extends Service {
                 Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,st);
                 Log.d(TAG, "G1ConnectStatus: 切换到dp 模式 配置显示器亮度："+dpBrightness+" , 保存平板状态："+brightness);
                 DPMode = true;
+                MainActivity.setBacklightSwitch(1);
             }else if (!isDPConnect() && DPMode){
                 Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,brightness);
                 Log.d(TAG, "G1ConnectStatus: 切换到平板 模式 配置显示器亮度："+brightness);
