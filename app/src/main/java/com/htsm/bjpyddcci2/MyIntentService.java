@@ -20,7 +20,7 @@ public class MyIntentService extends Service {
     private boolean DPMode = false; // 标志亮度值是否保存
     private static final String G1_DP_BATTERY_STATUS = "g1dpbatterystatus";
     private static final String G1_DP_BATTERY_LEVEL = "g1dpbatterylevel";
-    private static final int G1_DP_NOT_CONNECT = -1;
+    private static final int G1_DP_NOT_CONNECT = 5<<8;
     DisplayManager displayManager;
     private final Handler handler = new Handler();
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
@@ -42,18 +42,28 @@ public class MyIntentService extends Service {
     private final Runnable readBatteryStatsRunnable = new Runnable() {
         @Override
         public void run() {
-            if (isDPConnect()){
+            handler.removeCallbacks(disableBatteryViewShow);
+            if (isDPConnect() && MainActivity.getChargingStatus() != -1){
                 int batteryLevel = MainActivity.getCurrentBatteryLevel();
-                int BatteryStatus = MainActivity.getChargingStatus();  // 1是待机 2是充电
-                Log.d(TAG, "run: readBatteryStatsRunnable G1 写入 Settings  batteryLevel :" +batteryLevel +", BatteryStatus:"+BatteryStatus);
-                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,batteryLevel);
-                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_STATUS,BatteryStatus);
+                int batteryStatus = MainActivity.getChargingStatus();  // 1是待机 2是充电
+                Log.d(TAG, "run: readBatteryStatsRunnable G1 写入 Settings  batteryLevel :" +batteryLevel +", BatteryStatus:"+batteryStatus);
+                int date  = ((batteryStatus & 0xff)<<8) | (batteryLevel & 0xff);
+                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,date);
+
             }else {
-                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_STATUS,G1_DP_NOT_CONNECT);
-                Log.d(TAG, "run: readBatteryStatsRunnable G1 没有连接 ");
+                handler.postDelayed(disableBatteryViewShow,2*1000);
+
             }
 
             handler.postDelayed(readBatteryStatsRunnable,3000); //循环
+
+        }
+    };
+    private final Runnable disableBatteryViewShow  = new Runnable() {
+        @Override
+        public void run() {
+            Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,G1_DP_NOT_CONNECT);
+            Log.d(TAG, "run: readBatteryStatsRunnable G1 没有连接 ");
 
         }
     };
@@ -76,6 +86,8 @@ public class MyIntentService extends Service {
             handler.postDelayed(runnable,2*1000);
         }
     };
+
+
 
     private final Runnable runnable = new Runnable() {
         @Override
@@ -158,6 +170,7 @@ public class MyIntentService extends Service {
     }
     private boolean isDPConnect(){
         BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
+        Log.d(TAG, "isDPConnect: 手机电源是否连接"+batteryManager.isCharging());
         return batteryManager.isCharging() && !BatteryStatus.getWindowIsG1(getApplicationContext());
 
     }

@@ -3,10 +3,13 @@ package com.htsm.bjpyddcci2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.database.ContentObserver;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.util.Log;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -97,7 +100,9 @@ public class MainActivity extends AppCompatActivity {
         sound.setProgress(sound_i);
         int cur = getChargingStatus();
         charing.setText(cur >0?"正在充电":"正在待机");
+       // initjunjie(getApplicationContext());
     }
+
 
 
 
