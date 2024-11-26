@@ -18,7 +18,6 @@ public class MyIntentService extends Service {
     private static final String TAG = "MyIntentService";
     private int brightness =0; // 保存当前机器的亮度值
     private boolean DPMode = false; // 标志亮度值是否保存
-    private static final String G1_DP_BATTERY_STATUS = "g1dpbatterystatus";
     private static final String G1_DP_BATTERY_LEVEL = "g1dpbatterylevel";
     private static final int G1_DP_NOT_CONNECT = 5<<8;
     DisplayManager displayManager;
@@ -43,15 +42,21 @@ public class MyIntentService extends Service {
         @Override
         public void run() {
             handler.removeCallbacks(disableBatteryViewShow);
-            if (isDPConnect() && MainActivity.getChargingStatus() != -1){
+            if (MainActivity.getChargingStatus() != -1){
                 int batteryLevel = MainActivity.getCurrentBatteryLevel();
                 int batteryStatus = MainActivity.getChargingStatus();  // 1是待机 2是充电
                 Log.d(TAG, "run: readBatteryStatsRunnable G1 写入 Settings  batteryLevel :" +batteryLevel +", BatteryStatus:"+batteryStatus);
                 int date  = ((batteryStatus & 0xff)<<8) | (batteryLevel & 0xff);
                 Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,date);
+                Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
+                intent.putExtra("date",date);
+                sendBroadcast(intent);
 
             }else {
-                handler.postDelayed(disableBatteryViewShow,2*1000);
+                Log.d(TAG, "run: readBatteryStatsRunnable dp 没有连接");
+                Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
+                intent.putExtra("date",G1_DP_NOT_CONNECT);
+                sendBroadcast(intent);
 
             }
 
