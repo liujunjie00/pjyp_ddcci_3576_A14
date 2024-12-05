@@ -1,5 +1,6 @@
 package com.htsm.bjpyddcci2;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -10,6 +11,7 @@ import android.hardware.display.DisplayManager;
 import android.os.BatteryManager;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
 
@@ -43,6 +45,7 @@ public class MyIntentService extends Service {
         public void run() {
             handler.removeCallbacks(disableBatteryViewShow);
             if (MainActivity.getChargingStatus() != -1){
+                lockScreen();
                 int batteryLevel = MainActivity.getCurrentBatteryLevel();
                 int batteryStatus = MainActivity.getChargingStatus();  // 1是待机 2是充电
                 Log.d(TAG, "run: readBatteryStatsRunnable G1 写入 Settings  batteryLevel :" +batteryLevel +", BatteryStatus:"+batteryStatus);
@@ -53,6 +56,7 @@ public class MyIntentService extends Service {
                 sendBroadcast(intent);
 
             }else {
+                unLockScreen();
                 Log.d(TAG, "run: readBatteryStatsRunnable dp 没有连接");
                 Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
                 intent.putExtra("date",G1_DP_NOT_CONNECT);
@@ -119,6 +123,20 @@ public class MyIntentService extends Service {
         }
     };
 
+    private void lockScreen(){
+        if ( wakeLock != null && !wakeLock.isHeld()){
+            Log.d(TAG, "lockScreen: 持有锁");
+            wakeLock.acquire();
+        }
+    }
+
+    private void unLockScreen(){
+        if (wakeLock != null && wakeLock.isHeld()){
+            Log.d(TAG, "lockScreen: 释放锁");
+            wakeLock.release();
+        }
+    }
+
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -132,7 +150,18 @@ public class MyIntentService extends Service {
         initManger();
         initScreenListen();
         initBatteryStausListen();
+        initlock();
     }
+
+    PowerManager.WakeLock wakeLock;
+    @SuppressLint("InvalidWakeLockTag")
+    private void initlock() {
+        PowerManager powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        wakeLock =   powerManager.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK,"MyWakelockTag");
+    }
+
+
+
 
     private void initBatteryStausListen() {
         handler.postDelayed(readBatteryStatsRunnable,1000);
@@ -209,4 +238,10 @@ public class MyIntentService extends Service {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Intent intent = new Intent(this, MyIntentService.class);
+        startService(intent);
+    }
 }
