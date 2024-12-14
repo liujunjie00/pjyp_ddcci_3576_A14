@@ -1,5 +1,7 @@
 package com.htsm.bjpyddcci2;
 
+import static java.lang.Thread.sleep;
+
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -16,112 +18,116 @@ import android.provider.Settings;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
+
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 public class MyIntentService extends Service {
     private static final String TAG = "MyIntentService";
-    private int brightness =0; // 保存当前机器的亮度值
+    private int DPBrightness =0; // 保存当前机器的亮度值
     private boolean DPMode = false; // 标志亮度值是否保存
     private static final String G1_DP_BATTERY_LEVEL = "g1dpbatterylevel";
     private static final int G1_DP_NOT_CONNECT = 5<<8;
-    DisplayManager displayManager;
+    private static int CharStatus = 0;
     private final Handler handler = new Handler();
+    private boolean isCheck = false;
+    private final Lock lock = new ReentrantLock();
     private final BroadcastReceiver screenReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
             if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())){
-                MainActivity.setBacklightSwitch(0);
+                setBacklightSwitch(0);
                 Log.d(TAG, "onReceive: 打开dp 显示器背光");
 
             }else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())){
-                MainActivity.setBacklightSwitch(1);
+                setBacklightSwitch(1);
                 Log.d(TAG, "onReceive: 关闭dp 显示器背光");
             }
 
         }
     };
 
+    // Used to load the 'bjpyddcci2' library on application startup.
+    static {
+        System.loadLibrary("bjpyddcci2");
+    }
+    /**
+     * A native method that is implemented by the 'bjpyddcci2' native library,
+     * which is packaged with this application.
+     */
+    public native String stringFromJNI();
+
+
+    // 获取显示器的亮度
+    public static native int getDPBrightness(); //./dcccibin -a 0x37 -r 0x10 /dev/i2c-10
+
+    // 设置显示器的亮度
+    public static native int setDPBrightness(int value);
+
+    // 获取显示器的声音大小
+    public static native int getDPSound();
+
+    // 设置显示器的 大小
+    public static native int setDPSound(int value);
+
+    // 获取当前的充电状态
+    public static native  int getChargingStatus();
+
+    // 获取当前电量
+    public static native int getCurrentBatteryLevel();
+
+    //BACKLIGHT
+    public static native void setBacklightSwitch(int value);
+    /**
+     * 循环*/
     private final Runnable readBatteryStatsRunnable = new Runnable() {
         @Override
         public void run() {
-            handler.removeCallbacks(disableBatteryViewShow);
-            if (MainActivity.getChargingStatus() != -1){
-                lockScreen();
-                int batteryLevel = MainActivity.getCurrentBatteryLevel();
-                int batteryStatus = MainActivity.getChargingStatus();  // 1是待机 2是充电
-                Log.d(TAG, "run: readBatteryStatsRunnable G1 写入 Settings  batteryLevel :" +batteryLevel +", BatteryStatus:"+batteryStatus);
-                int date  = ((batteryStatus & 0xff)<<8) | (batteryLevel & 0xff);
-                Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,date);
-                Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
-                intent.putExtra("date",date);
-                sendBroadcast(intent);
 
-            }else {
-                unLockScreen();
-                Log.d(TAG, "run: readBatteryStatsRunnable dp 没有连接");
-                Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
-                intent.putExtra("date",G1_DP_NOT_CONNECT);
-                sendBroadcast(intent);
+            CharStatus = getChargingStatus();
+            DPMode =  CharStatus != -1;
 
-            }
-
+            sendDateControl();
             handler.postDelayed(readBatteryStatsRunnable,3000); //循环
 
         }
     };
-    private final Runnable disableBatteryViewShow  = new Runnable() {
-        @Override
-        public void run() {
-            Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,G1_DP_NOT_CONNECT);
-            Log.d(TAG, "run: readBatteryStatsRunnable G1 没有连接 ");
 
-        }
-    };
-    private final DisplayManager.DisplayListener displayListener = new DisplayManager.DisplayListener() {
-        @Override
-        public void onDisplayAdded(int displayId) {
-            Log.d(TAG, "onDisplayAdded: "+displayId);
+    private void sendDateControl(){
+        lock.lock();
+        isCheck = true;
+        if (DPMode){
+            Log.d(TAG, "sendDateControl: sleep");
 
-        }
+            lockScreen();
+            int batteryLevel = getCurrentBatteryLevel();
+            int batteryStatus = CharStatus;  // 1是待机 2是充电
 
-        @Override
-        public void onDisplayRemoved(int displayId) {
-            Log.d(TAG, "onDisplayRemoved: "+displayId);
-
-        }
-
-        @Override
-        public void onDisplayChanged(int displayId) {
-            handler.removeCallbacks(runnable);
-            handler.postDelayed(runnable,2*1000);
-        }
-    };
-
-
-
-    private final Runnable runnable = new Runnable() {
-        @Override
-        public void run() {
-            if (isDPConnect() && !DPMode){
-                try {
-                    brightness = Settings.System.getInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS);
-                } catch (Settings.SettingNotFoundException e) {
-                    throw new RuntimeException(e);
-                }
-                int dpBrightness = MainActivity.getDPBrightness(); //100
-                int st = Math.round((float) dpBrightness /100 * 255);
-                Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,st);
-                Log.d(TAG, "G1ConnectStatus: 切换到dp 模式 配置显示器亮度："+dpBrightness+" , 保存平板状态："+brightness);
-                DPMode = true;
-                MainActivity.setBacklightSwitch(1);
-            }else if (!isDPConnect() && DPMode){
-                Settings.System.putInt(getContentResolver(),Settings.System.SCREEN_BRIGHTNESS,brightness);
-                Log.d(TAG, "G1ConnectStatus: 切换到平板 模式 配置显示器亮度："+brightness);
-                DPMode = false;
-
+            Log.d(TAG, "run: readBatteryStatsRunnable dp 连接 batteryLevel:" +batteryLevel +", BatteryStatus:"+batteryStatus);
+            if (batteryLevel == -1){
+                lock.unlock();
+                return;
             }
+            int date  = ((batteryStatus & 0xff)<<8) | (batteryLevel & 0xff);
+            Settings.System.putInt(getContentResolver(),G1_DP_BATTERY_LEVEL,date);
+            Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
+            intent.putExtra("date",date);
+            sendBroadcast(intent);
 
+        }else {
+            unLockScreen();
+            Log.d(TAG, "run: readBatteryStatsRunnable dp 没有连接");
+            Intent intent = new Intent(G1_DP_BATTERY_LEVEL);
+            intent.putExtra("date",G1_DP_NOT_CONNECT);
+            sendBroadcast(intent);
         }
-    };
+        isCheck = false;
+        lock.unlock();
+
+
+    }
+
 
     private void lockScreen(){
         if ( wakeLock != null && !wakeLock.isHeld()){
@@ -147,10 +153,15 @@ public class MyIntentService extends Service {
     public void onCreate() {
         super.onCreate();
         initStatus();
-        initManger();
         initScreenListen();
         initBatteryStausListen();
         initlock();
+        int brightness = Settings.System.getInt(
+                getContentResolver(),
+                Settings.System.SCREEN_BRIGHTNESS,
+                0
+        );
+        DPBrightness = Math.round((float) brightness /255 * 100);
     }
 
     PowerManager.WakeLock wakeLock;
@@ -164,7 +175,7 @@ public class MyIntentService extends Service {
 
 
     private void initBatteryStausListen() {
-        handler.postDelayed(readBatteryStatsRunnable,1000);
+        handler.postDelayed(readBatteryStatsRunnable,1000); //  开启 循环
     }
 
 
@@ -179,20 +190,15 @@ public class MyIntentService extends Service {
     }
 
 
-
-
-
-    private void initManger() {
-        displayManager = getApplicationContext().getSystemService(DisplayManager.class);
-        displayManager.registerDisplayListener(displayListener,null);
-    }
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        super.onStartCommand(intent, flags, startId);
+        //super.onStartCommand(intent, flags, startId);
         return START_STICKY;
     }
 
+    /**
+     * 监听屏幕亮度
+     * */
     private void initStatus() {
         BrightnessObserver brightnessObserver = new BrightnessObserver(getApplicationContext());
         getContentResolver().registerContentObserver(
@@ -200,12 +206,6 @@ public class MyIntentService extends Service {
                 true,
                 brightnessObserver
         );
-
-    }
-    private boolean isDPConnect(){
-        BatteryManager batteryManager = (BatteryManager) getSystemService(BATTERY_SERVICE);
-        Log.d(TAG, "isDPConnect: 手机电源是否连接"+batteryManager.isCharging());
-        return batteryManager.isCharging() && !BatteryStatus.getWindowIsG1(getApplicationContext());
 
     }
 
@@ -230,10 +230,13 @@ public class MyIntentService extends Service {
             handleBrightnessChange(brightness);
         }
         private void handleBrightnessChange(int brightness) {
-            if (isDPConnect()){
-                int st = Math.round((float) brightness /255 * 100);
-                Log.d(TAG, "handleBrightnessChange: " +st);
-                MainActivity.setDPBrightness(st);
+            if (DPMode){
+                DPBrightness = Math.round((float) brightness /255 * 100);
+                handler.removeCallbacks(readBatteryStatsRunnable);
+                setDPBrightness(DPBrightness);
+                handler.postDelayed(readBatteryStatsRunnable,2*1000);
+
+
             }
         }
     }

@@ -393,7 +393,7 @@ static  char *fn = "/dev/i2c-10";
 static  int  addr_ctr;
 extern "C"
 JNIEXPORT jstring JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_stringFromJNI(
+Java_com_htsm_bjpyddcci2_MyIntentService_stringFromJNI(
         JNIEnv* env,
         jobject /* this */) {
     std::string hello = "Hello from C++";
@@ -403,7 +403,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_stringFromJNI(
 //./dcccibin -a 0x37 -r 0x10 /dev/i2c-10
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_getDPBrightness(JNIEnv *env, jclass clazz) {
+Java_com_htsm_bjpyddcci2_MyIntentService_getDPBrightness(JNIEnv *env, jclass clazz) {
     // TODO: implement getDPBrightness()
     int fd;
     jint re;
@@ -424,7 +424,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getDPBrightness(JNIEnv *env, jclass clazz)
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_setDPBrightness(JNIEnv *env, jclass clazz, jint value) {
+Java_com_htsm_bjpyddcci2_MyIntentService_setDPBrightness(JNIEnv *env, jclass clazz, jint value) {
     // TODO: implement setDPBrightness()  ddcci_writectrl(fd, addr, ctrl, value);
     int fd;
     jint re;
@@ -444,7 +444,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_setDPBrightness(JNIEnv *env, jclass clazz,
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_getDPSound(JNIEnv *env, jclass clazz) {
+Java_com_htsm_bjpyddcci2_MyIntentService_getDPSound(JNIEnv *env, jclass clazz) {
     // TODO: implement getDPSound()
     int fd;
     jint re;
@@ -464,7 +464,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getDPSound(JNIEnv *env, jclass clazz) {
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_setDPSound(JNIEnv *env, jclass clazz, jint value) {
+Java_com_htsm_bjpyddcci2_MyIntentService_setDPSound(JNIEnv *env, jclass clazz, jint value) {
     // TODO: implement setDPSound()
     int fd;
     jint re;
@@ -483,7 +483,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_setDPSound(JNIEnv *env, jclass clazz, jint
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_getChargingStatus(JNIEnv *env, jclass clazz) {
+Java_com_htsm_bjpyddcci2_MyIntentService_getChargingStatus(JNIEnv *env, jclass clazz) {
     int fd;
     jint re;
     addr_ctr = 0x65;
@@ -502,7 +502,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getChargingStatus(JNIEnv *env, jclass claz
 }
 extern "C"
 JNIEXPORT jint JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_getCurrentBatteryLevel(JNIEnv *env, jclass clazz) {
+Java_com_htsm_bjpyddcci2_MyIntentService_getCurrentBatteryLevel(JNIEnv *env, jclass clazz) {
     int fd;
     jint re;
     addr_ctr = 0x61;
@@ -523,7 +523,7 @@ Java_com_htsm_bjpyddcci2_MainActivity_getCurrentBatteryLevel(JNIEnv *env, jclass
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_htsm_bjpyddcci2_MainActivity_setBacklightSwitch(JNIEnv *env, jclass clazz,jint value) {
+Java_com_htsm_bjpyddcci2_MyIntentService_setBacklightSwitch(JNIEnv *env, jclass clazz,jint value) {
     // TODO: implement setBacklightSwitch()
     int fd;
     addr_ctr = 0x67;

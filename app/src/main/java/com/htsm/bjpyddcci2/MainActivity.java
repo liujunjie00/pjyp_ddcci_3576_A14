@@ -32,7 +32,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        initView();
+        //initView();
         initStatus();
     }
 
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void initView() {
+/*    private void initView() {
         br = findViewById(R.id.screen_br);
         sound = findViewById(R.id.screen_sound);
         batt = findViewById(R.id.screen_batt_status);
@@ -101,36 +101,10 @@ public class MainActivity extends AppCompatActivity {
         int cur = getChargingStatus();
         charing.setText(cur >0?"正在充电":"正在待机");
        // initjunjie(getApplicationContext());
-    }
+    }*/
 
 
 
 
-    /**
-     * A native method that is implemented by the 'bjpyddcci2' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 
-
-    // 获取显示器的亮度
-    public static native int getDPBrightness(); //./dcccibin -a 0x37 -r 0x10 /dev/i2c-10
-
-    // 设置显示器的亮度
-    public static native int setDPBrightness(int value);
-
-    // 获取显示器的声音大小
-    public static native int getDPSound();
-
-    // 设置显示器的 大小
-    public static native int setDPSound(int value);
-
-    // 获取当前的充电状态
-    public static native  int getChargingStatus();
-
-    // 获取当前电量
-    public static native int getCurrentBatteryLevel();
-
-    //BACKLIGHT
-    public static native void setBacklightSwitch(int value);
 }
