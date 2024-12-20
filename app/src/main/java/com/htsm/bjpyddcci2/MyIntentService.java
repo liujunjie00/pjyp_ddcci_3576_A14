@@ -234,7 +234,7 @@ public class MyIntentService extends Service {
                 DPBrightness = Math.round((float) brightness /255 * 100);
                 handler.removeCallbacks(readBatteryStatsRunnable);
                 setDPBrightness(DPBrightness);
-                handler.postDelayed(readBatteryStatsRunnable,2*1000);
+                handler.postDelayed(readBatteryStatsRunnable,5*1000);
 
 
             }
