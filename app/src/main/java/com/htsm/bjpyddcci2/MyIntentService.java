@@ -37,11 +37,11 @@ public class MyIntentService extends Service {
         public void onReceive(Context context, Intent intent) {
             if (intent == null) return;
             if (Intent.ACTION_SCREEN_ON.equals(intent.getAction())){
-                setBacklightSwitch(0);
+                setBacklightSwitch(1);
                 Log.d(TAG, "onReceive: 打开dp 显示器背光");
 
             }else if (Intent.ACTION_SCREEN_OFF.equals(intent.getAction())){
-                setBacklightSwitch(1);
+                setBacklightSwitch(0);
                 Log.d(TAG, "onReceive: 关闭dp 显示器背光");
             }
 
@@ -130,6 +130,9 @@ public class MyIntentService extends Service {
 
 
     private void lockScreen(){
+        if (wakeLock == null){
+            initlock();
+        }
         if ( wakeLock != null && !wakeLock.isHeld()){
             Log.d(TAG, "lockScreen: 持有锁");
             wakeLock.acquire();
@@ -137,6 +140,9 @@ public class MyIntentService extends Service {
     }
 
     private void unLockScreen(){
+        if (wakeLock == null){
+            initlock();
+        }
         if (wakeLock != null && wakeLock.isHeld()){
             Log.d(TAG, "lockScreen: 释放锁");
             wakeLock.release();
